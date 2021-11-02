@@ -24,6 +24,7 @@ func checkLinkExist(url string) bool {
 	if err := pgxscan.Select(context.Background(), conn, t, `
         SELECT url from posts
         WHERE id  = $1
+        AND created_at > current_date - interval '7 day'
     `, genPostID(url)); err != nil {
 		return false
 	}
