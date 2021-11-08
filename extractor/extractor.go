@@ -9,7 +9,7 @@ type Results struct {
 	Summary              string
 	Author               string
 	Timestamp            uint64
-	Domain               string
+	Site                 string
 	Country              string
 	Lang                 string
 	Type                 string
