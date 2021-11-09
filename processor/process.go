@@ -39,6 +39,9 @@ func ProcessPostResults(r *extractor.Results) error {
 			return err
 		}
 		*score += *originSiteScore
+		if err := upsertSiteScore(&u.Host, score); err != nil {
+			return err
+		}
 	}
 	return nil
 }
