@@ -26,6 +26,9 @@ func ProcessPostResults(r *extractor.Results) error {
 	if err := getSiteScore(&r.Site, originSiteScore); err != nil {
 		return err
 	}
+	if *originSiteScore > 10 {
+		*originSiteScore = 10
+	}
 
 	for _, l := range *links {
 		// get site
@@ -38,7 +41,7 @@ func ProcessPostResults(r *extractor.Results) error {
 		if err := getSiteScore(&u.Host, score); err != nil {
 			return err
 		}
-		*score += *originSiteScore
+		*score += *originSiteScore * 0.1
 		if err := upsertSiteScore(&u.Host, score); err != nil {
 			return err
 		}
