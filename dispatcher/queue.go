@@ -3,6 +3,7 @@ package dispatcher
 import (
 	"log"
 	"quickscrape/extractor"
+	"quickscrape/processor"
 	"time"
 )
 
@@ -20,6 +21,10 @@ func queueProcessor() {
 			results := new(extractor.Results)
 			if err := ext.ExtractLink(url, results); err != nil {
 				log.Println(err.Error())
+				return err
+			}
+
+			if err := processor.ProcessPostResults(results); err != nil {
 				return err
 			}
 
