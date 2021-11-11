@@ -1,11 +1,32 @@
 package processor
 
 import (
+	"fmt"
 	"net/url"
 	"quickscrape/extractor"
+	"quickscrape/textprocessor"
 )
 
 func ProcessPostResults(r *extractor.Results) error {
+	// textprocessor
+	tp := new(textprocessor.TextProcessor)
+	// detect lang -> tokenise -> entity
+	text := fmt.Sprintf("%s\n%s\n%s", r.Title, r.Summary, r.MainContent)
+	if err := tp.LangDetect(text, &r.Lang); err != nil {
+		return err
+	}
+
+	tokens := new([]textprocessor.Token)
+	if err := tp.Tokenise(textprocessor.InputText{Text: text, Lang: r.Lang}, tokens); err != nil {
+		return err
+	}
+
+	ents := new([]string)
+	if err := tp.EntityRecognition(textprocessor.InputText{Text: text, Lang: r.Lang}, ents); err != nil {
+		return err
+	}
+	r.Tokens = append(r.Tokens, *ents...)
+
 	// increment site score for all external links
 	// - dedupe external links
 	links := new([]string)
