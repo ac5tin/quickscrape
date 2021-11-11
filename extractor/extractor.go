@@ -11,19 +11,19 @@ import (
 type Extractor struct{}
 
 type Results struct {
-	RawHTML              string
-	URL                  string
-	Title                string
-	Summary              string
-	Author               string
-	Timestamp            uint64
-	Site                 string
-	Country              string
-	Lang                 string
-	Type                 string
-	RelatedInternalLinks []string
-	RelatedExternalLinks []string
-	Tokens               []string
+	RawHTML              string   `json:"rawHTML"`
+	URL                  string   `json:"url"`
+	Title                string   `json:"title"`
+	Summary              string   `json:"summary"`
+	Author               string   `json:"mainContent"`
+	Timestamp            uint64   `json:"timestamp"`
+	Site                 string   `json:"site"`
+	Country              string   `json:"country"`
+	Lang                 string   `json:"lang"`
+	Type                 string   `json:"type"`
+	RelatedInternalLinks []string `json:"relatedInternalLinks"`
+	RelatedExternalLinks []string `json:"relatedExternalLinks"`
+	Tokens               []string `json:"tokens"`
 }
 
 func (e *Extractor) ExtractLink(url string, r *Results) error {
@@ -35,10 +35,11 @@ func (e *Extractor) ExtractLink(url string, r *Results) error {
 	if err != nil {
 		return err
 	}
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/scrape/extract", os.Getenv("SPYDER_ENDPOINT")), bytes.NewBuffer(b))
+	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/crawl/full", os.Getenv("SPYDER_ENDPOINT")), bytes.NewBuffer(b))
 	if err != nil {
 		return err
 	}
+	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -48,7 +49,8 @@ func (e *Extractor) ExtractLink(url string, r *Results) error {
 
 	type extractorResp struct {
 		Data   Results `json:"data"`
-		Result string  `json:"result"`
+		Status string  `json:"status"`
+		Error  *string `json:"error"`
 	}
 
 	res := new(extractorResp)
@@ -56,8 +58,8 @@ func (e *Extractor) ExtractLink(url string, r *Results) error {
 		return err
 	}
 
-	if res.Result != "success" {
-		return fmt.Errorf("extractor failed")
+	if resp.StatusCode != 200 {
+		return fmt.Errorf("%s", *res.Error)
 	}
 
 	*r = res.Data
