@@ -15,7 +15,8 @@ type Results struct {
 	URL                  string   `json:"url"`
 	Title                string   `json:"title"`
 	Summary              string   `json:"summary"`
-	Author               string   `json:"mainContent"`
+	Author               string   `json:"author"`
+	MainContent          string   `json:"mainContent"`
 	Timestamp            uint64   `json:"timestamp"`
 	Site                 string   `json:"site"`
 	Country              string   `json:"country"`
