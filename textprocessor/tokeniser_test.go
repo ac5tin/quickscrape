@@ -11,7 +11,7 @@ func TestTokeniser(t *testing.T) {
 	tp := new(TextProcessor)
 
 	tokens := new([]Token)
-	if err := tp.Tokenise("I love to eat apple", "en", tokens); err != nil {
+	if err := tp.Tokenise(InputText{Text: "I love to eat apple", Lang: "en"}, tokens); err != nil {
 		t.Error(err)
 	}
 

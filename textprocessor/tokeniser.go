@@ -13,17 +13,13 @@ type Token struct {
 	Score float32 `json:"score"`
 }
 
-type inputText struct {
+type InputText struct {
 	Lang string `json:"lang"`
 	Text string `json:"text"`
 }
 
-func (tp *TextProcessor) Tokenise(text, lang string, tokens *[]Token) error {
-	input := inputText{
-		Lang: lang,
-		Text: text,
-	}
-	inp := new([]inputText)
+func (tp *TextProcessor) Tokenise(input InputText, tokens *[]Token) error {
+	inp := new([]InputText)
 	*inp = append(*inp, input)
 
 	b, err := json.Marshal(inp)
