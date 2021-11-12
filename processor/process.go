@@ -2,9 +2,11 @@ package processor
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"quickscrape/extractor"
 	"quickscrape/textprocessor"
+	"sync"
 )
 
 func ProcessPostResults(r *extractor.Results) error {
@@ -26,6 +28,35 @@ func ProcessPostResults(r *extractor.Results) error {
 		return err
 	}
 	r.Tokens = append(r.Tokens, *ents...)
+
+	// assign each entity with token score of 2
+	tkMap := new(sync.Map)
+	wg := new(sync.WaitGroup)
+	for _, ent := range *ents {
+		go func(entity string) {
+			defer wg.Done()
+			lang := new(string)
+			if err := tp.LangDetect(entity, lang); err != nil {
+				log.Println(err.Error())
+				return
+			}
+			entTk := new([]textprocessor.Token)
+			if err := tp.Tokenise(textprocessor.InputText{Text: entity, Lang: *lang}, entTk); err != nil {
+				log.Println(err.Error())
+				return
+			}
+			for _, tk := range *entTk {
+				v, _ := tkMap.LoadOrStore(tk.Token, 1)
+				tkMap.Store(tk.Token, v.(float32)+1)
+			}
+		}(ent)
+	}
+	wg.Wait()
+	tkMap.Range(func(key, value interface{}) bool {
+		*tokens = append(*tokens, textprocessor.Token{Token: key.(string), Score: value.(float32)})
+		r.Tokens = append(r.Tokens, key.(string))
+		return true
+	})
 
 	// increment site score for all external links
 	// - dedupe external links
