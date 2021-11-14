@@ -32,6 +32,7 @@ func ProcessPostResults(r *extractor.Results) error {
 	// assign each entity with token score of 2
 	tkMap := new(sync.Map)
 	wg := new(sync.WaitGroup)
+	wg.Add(len(*ents))
 	for _, ent := range *ents {
 		go func(entity string) {
 			defer wg.Done()
@@ -46,7 +47,8 @@ func ProcessPostResults(r *extractor.Results) error {
 				return
 			}
 			for _, tk := range *entTk {
-				v, _ := tkMap.LoadOrStore(tk.Token, 1)
+				var f float32 = 1.0
+				v, _ := tkMap.LoadOrStore(tk.Token, f)
 				tkMap.Store(tk.Token, v.(float32)+1)
 			}
 		}(ent)
