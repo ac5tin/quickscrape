@@ -13,11 +13,20 @@ func getSiteScore(site *string, score *float32) error {
 		return err
 	}
 	defer conn.Release()
-	if err := pgxscan.Get(context.Background(), conn, score, `
-		SELECT score FROM site WHERE site = $1
+
+	scores := new([]float32)
+	if err := pgxscan.Select(context.Background(), conn, scores, `
+		SELECT score FROM sites WHERE site = $1
 	`, *site); err != nil {
 		return err
 	}
+
+	if len(*scores) == 0 {
+		*score = 0
+		return nil
+	}
+
+	*score = (*scores)[0]
 	return nil
 }
 
@@ -33,7 +42,7 @@ func upsertSiteScore(site *string, score *float32) error {
 	}
 	defer tx.Rollback(context.Background())
 	if _, err := tx.Exec(context.Background(), `
-		INSERT INTO SITE (site, score) VALUES ($1, $2)
+		INSERT INTO sites (site, score) VALUES ($1, $2)
 		ON CONFLICT (site) DO UPDATE SET score = $2
 	`, *site, *score); err != nil {
 		return err
