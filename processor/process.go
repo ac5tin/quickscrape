@@ -98,5 +98,9 @@ func ProcessPostResults(r *extractor.Results) error {
 			return err
 		}
 	}
+	// insert
+	if err := insertResults(r); err != nil {
+		return err
+	}
 	return nil
 }
