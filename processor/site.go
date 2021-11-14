@@ -47,5 +47,8 @@ func upsertSiteScore(site *string, score *float32) error {
 	`, *site, *score); err != nil {
 		return err
 	}
+	if err := tx.Commit(context.Background()); err != nil {
+		return err
+	}
 	return nil
 }
