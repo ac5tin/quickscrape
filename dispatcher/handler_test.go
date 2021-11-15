@@ -17,7 +17,7 @@ func TestLinkHandler(t *testing.T) {
 	}
 	db.PG = pg
 
-	link := "https://www.google.co.uk"
+	link := "https://www.fasta.ai"
 	if err := linkHandler(&link); err != nil {
 		t.Error(err)
 	}
