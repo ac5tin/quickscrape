@@ -3,6 +3,7 @@ package dispatcher
 import (
 	"os"
 	"quickscrape/db"
+	"sync"
 	"testing"
 
 	"github.com/joho/godotenv"
@@ -17,8 +18,29 @@ func TestLinkHandler(t *testing.T) {
 	}
 	db.PG = pg
 
-	link := "https://www.fasta.ai"
-	if err := linkHandler(&link); err != nil {
-		t.Error(err)
-	}
+	wg := new(sync.WaitGroup)
+	wg.Add(3)
+	go func() {
+		defer wg.Done()
+		link := "https://www.fasta.ai"
+		if err := linkHandler(&link); err != nil {
+			t.Error(err)
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		link := "https://www.lenx.ai"
+		if err := linkHandler(&link); err != nil {
+			t.Error(err)
+		}
+	}()
+	go func() {
+		defer wg.Done()
+		link := "https://www.thinkcol.com"
+		if err := linkHandler(&link); err != nil {
+			t.Error(err)
+		}
+	}()
+	wg.Wait()
+
 }
