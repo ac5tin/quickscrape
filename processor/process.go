@@ -10,6 +10,7 @@ import (
 )
 
 func ProcessPostResults(r *extractor.Results) error {
+	// ======== HANDLE SITE TOKEN ========
 	// textprocessor
 	tp := new(textprocessor.TextProcessor)
 	// detect lang -> tokenise -> entity
@@ -18,19 +19,27 @@ func ProcessPostResults(r *extractor.Results) error {
 		return err
 	}
 
+	// tokenise web page
 	tokens := new([]textprocessor.Token)
 	if err := tp.Tokenise(textprocessor.InputText{Text: text, Lang: r.Lang}, tokens); err != nil {
 		return err
 	}
 
+	// entities
 	ents := new([]string)
 	if err := tp.EntityRecognition(textprocessor.InputText{Text: text, Lang: r.Lang}, ents); err != nil {
 		return err
 	}
-	r.Tokens = append(r.Tokens, *ents...)
 
+	// token maps
+	tkMap := make(map[string]float32)    // all tokens (tokens + entities)
+	entTkMap := make(map[string]float32) // entities only
+	// assign token to maps
+	for _, tk := range *tokens {
+		tkMap[tk.Token] = tk.Score
+	}
 	// assign each entity with token score of 2
-	tkMap := new(sync.Map)
+	entTkMapSync := new(sync.Map)
 	wg := new(sync.WaitGroup)
 	wg.Add(len(*ents))
 	for _, ent := range *ents {
@@ -48,17 +57,34 @@ func ProcessPostResults(r *extractor.Results) error {
 			}
 			for _, tk := range *entTk {
 				var f float32 = 1.0
-				v, _ := tkMap.LoadOrStore(tk.Token, f)
-				tkMap.Store(tk.Token, v.(float32)+1)
+				v, _ := entTkMapSync.LoadOrStore(tk.Token, f)
+				entTkMapSync.Store(tk.Token, v.(float32)+1)
 			}
 		}(ent)
 	}
 	wg.Wait()
-	tkMap.Range(func(key, value interface{}) bool {
-		*tokens = append(*tokens, textprocessor.Token{Token: key.(string), Score: value.(float32)})
-		r.Tokens = append(r.Tokens, key.(string))
+	entTkMapSync.Range(func(key, value interface{}) bool {
+		// add entity token to tokens map
+		if v, ok := tkMap[key.(string)]; ok {
+			tkMap[key.(string)] = v + value.(float32)
+		} else {
+			tkMap[key.(string)] = value.(float32)
+		}
+		// entity token map
+		entTkMap[key.(string)] = value.(float32)
 		return true
 	})
+
+	// +1 to all tokens (scraped tokens)
+	for _, tk := range r.Tokens {
+		if v, ok := tkMap[tk]; ok {
+			tkMap[tk] = v + 1
+		} else {
+			tkMap[tk] = 1
+		}
+	}
+
+	// ========= SITE ===============
 
 	// increment site score for all external links
 	// - dedupe external links
@@ -107,8 +133,21 @@ func ProcessPostResults(r *extractor.Results) error {
 			return err
 		}
 	}
-	// insert
-	if err := insertResults(r); err != nil {
+	// ========= INSERT ==========
+	// insert post
+	p := new(post)
+	p.Author = r.Author
+	p.Site = r.Site
+	p.Title = r.Title
+	p.Tokens = tkMap
+	p.Summary = r.Summary
+	p.URL = r.URL
+	p.Timestamp = r.Timestamp
+	p.Language = r.Lang
+	p.InternalLinks = r.RelatedInternalLinks
+	p.ExternalLinks = r.RelatedExternalLinks
+	p.Entities = entTkMap
+	if err := insertResults(p); err != nil {
 		return err
 	}
 	return nil
