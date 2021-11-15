@@ -84,6 +84,13 @@ func ProcessPostResults(r *extractor.Results) error {
 		*originSiteScore = 10
 	}
 
+	if *originSiteScore == 0 {
+		*originSiteScore = 1
+		if err := upsertSiteScore(&r.Site, originSiteScore); err != nil {
+			return err
+		}
+	}
+
 	for _, l := range *links {
 		// get site
 		u, err := url.Parse(l)
