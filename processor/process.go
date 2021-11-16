@@ -3,7 +3,6 @@ package processor
 import (
 	"fmt"
 	"log"
-	"net/url"
 	"quickscrape/extractor"
 	"quickscrape/textprocessor"
 	"sync"
@@ -86,7 +85,6 @@ func ProcessPostResults(r *extractor.Results) error {
 
 	// ========= SITE ===============
 
-	// increment site score for all external links
 	// - dedupe external links
 	links := new([]string)
 	mapLinks := make(map[string]interface{})
@@ -97,42 +95,21 @@ func ProcessPostResults(r *extractor.Results) error {
 		}
 	}
 	mapLinks = nil // gc
-	// - each external link
-	// -- externLink.site.score += r.site.score * 0.1 // max cap = 10
-	// if already exist, overwrite token scores
-	// insert record into to db
+	r.RelatedExternalLinks = *links
+	links = nil //gc
 
-	originSiteScore := new(float32)
-	if err := getSiteScore(&r.Site, originSiteScore); err != nil {
-		return err
-	}
-	if *originSiteScore > 10 {
-		*originSiteScore = 10
-	}
-
-	if *originSiteScore == 0 {
-		*originSiteScore = 1
-		if err := upsertSiteScore(&r.Site, originSiteScore); err != nil {
-			return err
+	// - dedupe internal links
+	links = new([]string)
+	mapLinks = make(map[string]interface{})
+	for _, l := range r.RelatedInternalLinks {
+		if mapLinks[l] == nil {
+			*links = append(*links, l)
+			mapLinks[l] = struct{}{}
 		}
 	}
-
-	for _, l := range *links {
-		// get site
-		u, err := url.Parse(l)
-		if err != nil {
-			return err
-		}
-		// get site score
-		score := new(float32)
-		if err := getSiteScore(&u.Host, score); err != nil {
-			return err
-		}
-		*score += *originSiteScore * 0.1
-		if err := upsertSiteScore(&u.Host, score); err != nil {
-			return err
-		}
-	}
+	mapLinks = nil // gc
+	r.RelatedInternalLinks = *links
+	links = nil //gc
 	// ========= INSERT ==========
 	// insert post
 	p := new(post)
