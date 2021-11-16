@@ -1,3 +1,30 @@
 package main
 
-func main() {}
+import (
+	"flag"
+	"log"
+	"os"
+	"quickscrape/db"
+	"quickscrape/dispatcher"
+
+	_ "github.com/joho/godotenv/autoload"
+)
+
+func main() {
+	site := flag.String("site", "", "URL to init auto crawl")
+	flag.Parse()
+
+	// init db
+	pg, err := db.Db(os.Getenv("DB_STRING"), os.Getenv("DB_SCHEMA"))
+	if err != nil {
+		log.Panic(err.Error())
+	}
+	db.PG = pg
+
+	go dispatcher.AutoDispatch()
+	go dispatcher.CrawlURL(*site)
+
+	for {
+		// dont end program
+	}
+}
