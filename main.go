@@ -14,6 +14,9 @@ func main() {
 	site := flag.String("site", "", "URL to init auto crawl")
 	flag.Parse()
 
+	if *site == "" {
+		log.Panic("no site supplied")
+	}
 	// init db
 	pg, err := db.Db(os.Getenv("DB_STRING"), os.Getenv("DB_SCHEMA"))
 	if err != nil {
