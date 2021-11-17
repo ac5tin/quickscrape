@@ -71,12 +71,12 @@ func ProcessPostResults(r *extractor.Results) error {
 			defer wg.Done()
 			lang := new(string)
 			if err := tp.LangDetect(entity, lang); err != nil {
-				log.Println(err.Error())
+				log.Printf("Failed to detect language, [%s] ERR: %s", entity, err.Error())
 				return
 			}
 			entTk := new([]textprocessor.Token)
 			if err := tp.Tokenise(textprocessor.InputText{Text: entity, Lang: *lang}, entTk); err != nil {
-				log.Println(err.Error())
+				log.Printf("Failed to tokenise, ERR: %s", err.Error())
 				return
 			}
 			for _, tk := range *entTk {

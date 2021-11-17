@@ -17,7 +17,7 @@ func (t *tracker) autoTrack() {
 		for {
 			sites := new([]site)
 			if err := getTopSites(20, sites); err != nil {
-				log.Println(err.Error())
+				log.Printf("Failed to get top sites, ERR: %s", err.Error())
 			}
 			for _, s := range *sites {
 				queue = append(queue, s.Site)
@@ -30,7 +30,7 @@ func (t *tracker) autoTrack() {
 		for {
 			sites := new([]site)
 			if err := getTopSites(15, sites); err != nil {
-				log.Println(err.Error())
+				log.Printf("Failed to get top sites, ERR: %s", err.Error())
 			}
 			for _, s := range *sites {
 				if s.Score >= 20 {
@@ -48,7 +48,7 @@ func (t *tracker) autoTrack() {
 		for {
 			sites := new([]site)
 			if err := getTopSites(10, sites); err != nil {
-				log.Println(err.Error())
+				log.Printf("Failed to get top sites, ERR: %s", err.Error())
 			}
 			for _, s := range *sites {
 				if s.Score >= 15 {
@@ -66,7 +66,7 @@ func (t *tracker) autoTrack() {
 		for {
 			sites := new([]site)
 			if err := getTopSites(5, sites); err != nil {
-				log.Println(err.Error())
+				log.Printf("Failed to get top sites, ERR: %s", err.Error())
 			}
 			for _, s := range *sites {
 				if s.Score >= 10 {

@@ -8,8 +8,8 @@ import (
 	"time"
 )
 
-const SCRAPE_MAX_RETRY = 3
-const MAX_PARALLEL_SCRAPE = 3
+const SCRAPE_MAX_RETRY = 5
+const MAX_PARALLEL_SCRAPE = 10
 
 var queue []string = make([]string, 0)
 
@@ -42,7 +42,7 @@ func queueProcessor() {
 				// retry scraping 3 times
 				for i := 0; i < SCRAPE_MAX_RETRY; i++ {
 					if err := ext.ExtractLink(url, results); err != nil {
-						log.Println(err.Error())
+						log.Printf("Failed to scrape %s too many times, ERR: %s", url, err.Error())
 						if i == SCRAPE_MAX_RETRY-1 {
 							return err
 						}
