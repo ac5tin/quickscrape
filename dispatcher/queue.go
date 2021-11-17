@@ -4,19 +4,34 @@ import (
 	"log"
 	"quickscrape/extractor"
 	"quickscrape/processor"
+	"sync"
 	"time"
 )
 
 const SCRAPE_MAX_RETRY = 3
+const MAX_PARALLEL_SCRAPE = 3
 
 var queue []string = make([]string, 0)
 
 func queueProcessor() {
 	queueLen := len(queue)
 	log.Println("Queue length:", queueLen) // debug
+
+	scraping := 0
+	wg := new(sync.WaitGroup)
+
+	if queueLen > MAX_PARALLEL_SCRAPE {
+		wg.Add(MAX_PARALLEL_SCRAPE)
+	}
+
 	for _, url := range queue {
 		// scrape url
+		scraping += 1
 		go func(url string) error {
+			if queueLen > MAX_PARALLEL_SCRAPE {
+				defer wg.Done()
+			}
+
 			if checkLinkExist(url) {
 				return nil
 			}
@@ -50,6 +65,14 @@ func queueProcessor() {
 			return nil
 
 		}(url)
+
+		if queueLen > MAX_PARALLEL_SCRAPE && scraping == MAX_PARALLEL_SCRAPE {
+			log.Println("max parallel scrap reached, now waiting ...")
+			wg.Wait()
+			wg.Add(MAX_PARALLEL_SCRAPE)
+			scraping = 0
+		}
+
 	}
 	queue = queue[queueLen:]
 }
