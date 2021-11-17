@@ -8,6 +8,9 @@ import (
 	"sync"
 )
 
+const TITLE_MULTIPLIER = 2.0
+const SUMMARY_MULTIPLIER = 1.5
+
 func ProcessPostResults(r *extractor.Results) error {
 	// ======== HANDLE SITE TOKEN ========
 	// textprocessor
@@ -19,10 +22,21 @@ func ProcessPostResults(r *extractor.Results) error {
 	}
 
 	// tokenise web page
+	allTokens := new([][]textprocessor.Token)
 	tokens := new([]textprocessor.Token)
-	if err := tp.Tokenise(textprocessor.InputText{Text: text, Lang: r.Lang}, tokens); err != nil {
+	titleTokens := new([]textprocessor.Token)
+	summaryTokens := new([]textprocessor.Token)
+
+	everything := textprocessor.InputText{Text: text, Lang: r.Lang}
+	title := textprocessor.InputText{Text: r.Title, Lang: r.Lang}
+	summary := textprocessor.InputText{Text: r.Summary, Lang: r.Lang}
+	if err := tp.TokeniseMulti(&[]textprocessor.InputText{everything, title, summary}, allTokens); err != nil {
 		return err
 	}
+
+	*tokens = (*allTokens)[0]
+	*titleTokens = (*allTokens)[1]
+	*summaryTokens = (*allTokens)[2]
 
 	// entities
 	ents := new([]string)
@@ -37,6 +51,17 @@ func ProcessPostResults(r *extractor.Results) error {
 	for _, tk := range *tokens {
 		tkMap[tk.Token] = tk.Score
 	}
+
+	// extra score for title
+	for _, tk := range *titleTokens {
+		tkMap[tk.Token] += tk.Score * TITLE_MULTIPLIER
+	}
+
+	// little extra for summary
+	for _, tk := range *summaryTokens {
+		tkMap[tk.Token] += tk.Score * SUMMARY_MULTIPLIER
+	}
+
 	// assign each entity with token score of 2
 	entTkMapSync := new(sync.Map)
 	wg := new(sync.WaitGroup)
