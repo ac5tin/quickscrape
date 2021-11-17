@@ -55,6 +55,7 @@ func queueProcessor() {
 
 			log.Printf("Sending %s to indexer", url) // debug
 			if err := processor.ProcessPostResults(results); err != nil {
+				log.Printf("%s failed at result processing| ERR: %s", url, err.Error()) // debug
 				return err
 			}
 
