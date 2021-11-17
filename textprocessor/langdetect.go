@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 )
@@ -15,27 +16,36 @@ func (tp *TextProcessor) LangDetect(text string, lang *string) error {
 		return err
 	}
 
-	req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/langdet", os.Getenv("TEXTPROCESSOR_ENDPOINT")), bytes.NewBuffer(b))
-	if err != nil {
-		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
+	for i := 0; i < MAX_RETRY_COUNT; i++ {
+		req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/langdet", os.Getenv("TEXTPROCESSOR_ENDPOINT")), bytes.NewBuffer(b))
+		if err != nil {
+			log.Printf("Failed at textprocessor.LangDetect %s", err.Error())
+			continue
+		}
+		req.Header.Set("Content-Type", "application/json")
+		client := &http.Client{}
+		resp, err := client.Do(req)
+		if err != nil {
+			log.Printf("Failed at textprocessor.LangDetect %s", err.Error())
+			continue
+		}
+		defer resp.Body.Close()
 
-	res := new([]string)
-	if err := json.NewDecoder(resp.Body).Decode(res); err != nil {
-		return err
+		res := new([]string)
+		if err := json.NewDecoder(resp.Body).Decode(res); err != nil {
+			log.Printf("Failed at textprocessor.LangDetect %s", err.Error())
+			continue
+		}
+
+		if resp.StatusCode != 200 {
+			log.Println("textprocessor failed to detect language")
+			continue
+		}
+
+		*lang = (*res)[0]
+		return nil
+
 	}
 
-	if resp.StatusCode != 200 {
-		return fmt.Errorf("textprocessor failed to detect language")
-	}
-
-	*lang = (*res)[0]
-	return nil
+	return fmt.Errorf("failed to detect language too many times, [text: %s] aborting", text)
 }
