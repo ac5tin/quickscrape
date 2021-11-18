@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 func (tp *TextProcessor) EntityRecognition(inp InputText, entities *[]string) error {
@@ -22,6 +23,7 @@ func (tp *TextProcessor) EntityRecognition(inp InputText, entities *[]string) er
 		req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/entity", os.Getenv("TEXTPROCESSOR_ENDPOINT")), bytes.NewBuffer(b))
 		if err != nil {
 			log.Printf("Failed at textprocessor.EntityRecognition %s", err.Error())
+			time.Sleep(time.Second * 3)
 			continue
 		}
 		req.Header.Set("Content-Type", "application/json")
@@ -29,6 +31,7 @@ func (tp *TextProcessor) EntityRecognition(inp InputText, entities *[]string) er
 		resp, err := client.Do(req)
 		if err != nil {
 			log.Printf("Failed at textprocessor.EntityRecognition %s", err.Error())
+			time.Sleep(time.Second * 3)
 			continue
 		}
 		defer resp.Body.Close()
@@ -36,10 +39,12 @@ func (tp *TextProcessor) EntityRecognition(inp InputText, entities *[]string) er
 		res := new([][]string)
 		if err := json.NewDecoder(resp.Body).Decode(res); err != nil {
 			log.Printf("Failed at textprocessor.EntityRecognition %s", err.Error())
+			time.Sleep(time.Second * 3)
 			continue
 		}
 		if resp.StatusCode != 200 {
 			log.Printf("textprocessor failed to recognise entity")
+			time.Sleep(time.Second * 3)
 			continue
 		}
 

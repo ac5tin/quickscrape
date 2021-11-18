@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 )
 
 type Token struct {
@@ -32,6 +33,7 @@ func (tp *TextProcessor) Tokenise(input InputText, tokens *[]Token) error {
 		req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/tokenise", os.Getenv("TEXTPROCESSOR_ENDPOINT")), bytes.NewBuffer(b))
 		if err != nil {
 			log.Printf("Failed at textprocessor.Tokenise %s", err.Error())
+			time.Sleep(time.Second * 3)
 			continue
 		}
 		req.Header.Set("Content-Type", "application/json")
@@ -39,6 +41,7 @@ func (tp *TextProcessor) Tokenise(input InputText, tokens *[]Token) error {
 		resp, err := client.Do(req)
 		if err != nil {
 			log.Printf("Failed at textprocessor.Tokenise %s", err.Error())
+			time.Sleep(time.Second * 3)
 			continue
 		}
 		defer resp.Body.Close()
@@ -46,11 +49,13 @@ func (tp *TextProcessor) Tokenise(input InputText, tokens *[]Token) error {
 		res := new([][]Token)
 		if err := json.NewDecoder(resp.Body).Decode(res); err != nil {
 			log.Printf("Failed at textprocessor.Tokenise %s", err.Error())
+			time.Sleep(time.Second * 3)
 			continue
 		}
 
 		if resp.StatusCode != 200 {
 			log.Printf("Failed at textprocessor.Tokenise")
+			time.Sleep(time.Second * 3)
 			continue
 		}
 
@@ -73,6 +78,7 @@ func (tp *TextProcessor) TokeniseMulti(input *[]InputText, tokens *[][]Token) er
 		req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/tokenise", os.Getenv("TEXTPROCESSOR_ENDPOINT")), bytes.NewBuffer(b))
 		if err != nil {
 			log.Printf("Failed at textprocessor.TokeniseMulti %s", err.Error())
+			time.Sleep(time.Second * 3)
 			continue
 		}
 		req.Header.Set("Content-Type", "application/json")
@@ -80,6 +86,7 @@ func (tp *TextProcessor) TokeniseMulti(input *[]InputText, tokens *[][]Token) er
 		resp, err := client.Do(req)
 		if err != nil {
 			log.Printf("Failed at textprocessor.TokeniseMulti %s", err.Error())
+			time.Sleep(time.Second * 3)
 			continue
 		}
 		defer resp.Body.Close()
@@ -87,11 +94,13 @@ func (tp *TextProcessor) TokeniseMulti(input *[]InputText, tokens *[][]Token) er
 		res := new([][]Token)
 		if err := json.NewDecoder(resp.Body).Decode(res); err != nil {
 			log.Printf("Failed at textprocessor.TokeniseMulti %s", err.Error())
+			time.Sleep(time.Second * 3)
 			continue
 		}
 
 		if resp.StatusCode != 200 {
 			log.Printf("Failed at textprocessor.TokeniseMulti")
+			time.Sleep(time.Second * 3)
 			continue
 		}
 
