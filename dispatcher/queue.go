@@ -35,6 +35,10 @@ func queueProcessor() {
 			if checkLinkExist(url) {
 				return nil
 			}
+
+			if extractor.CheckIfLink404(url) {
+				return nil
+			}
 			log.Printf("Scraping %s", url) // debug
 			ext := new(extractor.Extractor)
 			results := new(extractor.Results)
