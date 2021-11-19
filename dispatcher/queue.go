@@ -13,6 +13,7 @@ const MAX_PARALLEL_SCRAPE = 15
 const PROCESS_MAX_RETRY = 5
 
 var queue []string = make([]string, 0)
+var qchan chan string = make(chan string)
 
 func queueProcessor() {
 	queueLen := len(queue)
@@ -48,8 +49,8 @@ func queueProcessor() {
 				// retry scraping 3 times
 				for i := 0; i < SCRAPE_MAX_RETRY; i++ {
 					if err := ext.ExtractLink(url, results); err != nil {
-						log.Printf("Failed to scrape %s too many times, ERR: %s", url, err.Error())
 						if i == SCRAPE_MAX_RETRY-1 {
+							log.Printf("Failed to scrape %s too many times, aborting ... | ERR: %s", url, err.Error())
 							return err
 						}
 						log.Printf("Failed to scrape %s, retrying ...", url) // debug
@@ -59,26 +60,17 @@ func queueProcessor() {
 				}
 			}
 
-			log.Printf("Sending %s to indexer", url) // debug
-			{
-				// retry processing
-				for i := 0; i < PROCESS_MAX_RETRY; i++ {
-					if err := processor.ProcessPostResults(results); err != nil {
-						log.Printf("%s failed at result processing| ERR: %s", url, err.Error()) // debug
-						if i == PROCESS_MAX_RETRY-1 {
-							return err
-						}
-						log.Printf("Failed to process %s, retrying ... ", url)
-						continue
-					}
-					break
-				}
-			}
-			log.Printf("Successfully indexed %s", url) // debug
+			log.Printf("Successfully scraped %s", url) // debug
+			processor.QChan <- results
 
 			log.Printf("Extracted %d external links + %d internal links from  %s", len(results.RelatedExternalLinks), len(results.RelatedInternalLinks), url) // debug
-			queue = append(queue, results.RelatedExternalLinks...)
-			queue = append(queue, results.RelatedInternalLinks...)
+
+			for _, link := range results.RelatedExternalLinks {
+				qchan <- link
+			}
+			for _, link := range results.RelatedInternalLinks {
+				qchan <- link
+			}
 
 			return nil
 
@@ -96,6 +88,12 @@ func queueProcessor() {
 }
 
 func processQueue() {
+	go func() {
+		for {
+			r := <-qchan
+			queue = append(queue, r)
+		}
+	}()
 	for {
 		queueProcessor()
 		time.Sleep(10 * time.Second)
