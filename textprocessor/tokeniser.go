@@ -74,9 +74,12 @@ func (tp *TextProcessor) TokeniseMulti(input *[]InputText, tokens *[][]Token) er
 		return err
 	}
 
+	errMsg := new(string)
+
 	for i := 0; i < MAX_RETRY_COUNT; i++ {
 		req, err := http.NewRequest("POST", fmt.Sprintf("%s/api/tokenise", os.Getenv("TEXTPROCESSOR_ENDPOINT")), bytes.NewBuffer(b))
 		if err != nil {
+			*errMsg = err.Error()
 			log.Printf("Failed at textprocessor.TokeniseMulti %s", err.Error())
 			time.Sleep(time.Second * 3)
 			continue
@@ -85,21 +88,26 @@ func (tp *TextProcessor) TokeniseMulti(input *[]InputText, tokens *[][]Token) er
 		client := &http.Client{}
 		resp, err := client.Do(req)
 		if err != nil {
+			*errMsg = err.Error()
 			log.Printf("Failed at textprocessor.TokeniseMulti %s", err.Error())
 			time.Sleep(time.Second * 3)
 			continue
 		}
 		defer resp.Body.Close()
 
-		res := new([][]Token)
-		if err := json.NewDecoder(resp.Body).Decode(res); err != nil {
-			log.Printf("Failed at textprocessor.TokeniseMulti %s", err.Error())
+		if resp.StatusCode != 200 {
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(resp.Body)
+			*errMsg = fmt.Sprintf("status code not 200, Err: %s", buf.String())
+			log.Printf("Failed at textprocessor.TokeniseMulti")
 			time.Sleep(time.Second * 3)
 			continue
 		}
 
-		if resp.StatusCode != 200 {
-			log.Printf("Failed at textprocessor.TokeniseMulti")
+		res := new([][]Token)
+		if err := json.NewDecoder(resp.Body).Decode(res); err != nil {
+			*errMsg = err.Error()
+			log.Printf("Failed at textprocessor.TokeniseMulti %s", err.Error())
 			time.Sleep(time.Second * 3)
 			continue
 		}
@@ -107,6 +115,6 @@ func (tp *TextProcessor) TokeniseMulti(input *[]InputText, tokens *[][]Token) er
 		*tokens = (*res)
 		return nil
 	}
-	return fmt.Errorf("failed to tokeniseMulti text too many times, aborting")
+	return fmt.Errorf("failed to tokeniseMulti text too many times [%s], aborting", *errMsg)
 
 }
