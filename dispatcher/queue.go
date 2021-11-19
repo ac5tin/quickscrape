@@ -9,7 +9,7 @@ import (
 )
 
 const SCRAPE_MAX_RETRY = 5
-const MAX_PARALLEL_SCRAPE = 10
+const MAX_PARALLEL_SCRAPE = 15
 
 var queue []string = make([]string, 0)
 
@@ -33,6 +33,7 @@ func queueProcessor() {
 			}
 
 			if checkLinkExist(url) {
+				log.Printf("Link already exist: %s, skipping ...", url)
 				return nil
 			}
 
