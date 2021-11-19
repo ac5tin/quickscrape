@@ -6,6 +6,7 @@ import (
 	"os"
 	"quickscrape/db"
 	"quickscrape/dispatcher"
+	"quickscrape/processor"
 
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -26,6 +27,7 @@ func main() {
 
 	go dispatcher.AutoDispatch()
 	go dispatcher.CrawlURL(*site)
+	go processor.ProcessQueue()
 
 	for {
 		// dont end program
