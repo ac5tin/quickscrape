@@ -10,6 +10,7 @@ import (
 
 const SCRAPE_MAX_RETRY = 5
 const MAX_PARALLEL_SCRAPE = 15
+const PROCESS_MAX_RETRY = 5
 
 var queue []string = make([]string, 0)
 
@@ -59,12 +60,23 @@ func queueProcessor() {
 			}
 
 			log.Printf("Sending %s to indexer", url) // debug
-			if err := processor.ProcessPostResults(results); err != nil {
-				log.Printf("%s failed at result processing| ERR: %s", url, err.Error()) // debug
-				return err
+			{
+				// retry processing
+				for i := 0; i < PROCESS_MAX_RETRY; i++ {
+					if err := processor.ProcessPostResults(results); err != nil {
+						log.Printf("%s failed at result processing| ERR: %s", url, err.Error()) // debug
+						if i == PROCESS_MAX_RETRY-1 {
+							return err
+						}
+						log.Printf("Failed to process %s, retrying ... ", url)
+						continue
+					}
+					break
+				}
 			}
+			log.Printf("Successfully indexed %s", url) // debug
 
-			log.Printf("Extract %d external links + %d internal links from  %s", len(results.RelatedExternalLinks), len(results.RelatedInternalLinks), url) // debug
+			log.Printf("Extracted %d external links + %d internal links from  %s", len(results.RelatedExternalLinks), len(results.RelatedInternalLinks), url) // debug
 			queue = append(queue, results.RelatedExternalLinks...)
 			queue = append(queue, results.RelatedInternalLinks...)
 
