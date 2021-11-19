@@ -27,9 +27,9 @@ func ProcessPostResults(r *extractor.Results) error {
 	titleTokens := new([]textprocessor.Token)
 	summaryTokens := new([]textprocessor.Token)
 
-	everything := textprocessor.InputText{Text: text, Lang: r.Lang}
-	title := textprocessor.InputText{Text: r.Title, Lang: r.Lang}
-	summary := textprocessor.InputText{Text: r.Summary, Lang: r.Lang}
+	everything := textprocessor.InputText{Text: fmt.Sprintf("_ %s", text), Lang: r.Lang}
+	title := textprocessor.InputText{Text: fmt.Sprintf("_ %s", r.Title), Lang: r.Lang}
+	summary := textprocessor.InputText{Text: fmt.Sprintf("_ %s", r.Summary), Lang: r.Lang}
 	if err := tp.TokeniseMulti(&[]textprocessor.InputText{everything, title, summary}, allTokens); err != nil {
 		return err
 	}
