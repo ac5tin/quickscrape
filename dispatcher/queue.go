@@ -3,7 +3,6 @@ package dispatcher
 import (
 	"log"
 	"quickscrape/extractor"
-	"quickscrape/processor"
 	"sync"
 	"time"
 )
@@ -61,7 +60,9 @@ func queueProcessor() {
 			}
 
 			log.Printf("Successfully scraped %s", url) // debug
-			processor.QChan <- results
+			if err := insertResults(&[]extractor.Results{*results}); err != nil {
+				return err
+			}
 
 			log.Printf("Extracted %d external links + %d internal links from  %s", len(results.RelatedExternalLinks), len(results.RelatedInternalLinks), url) // debug
 

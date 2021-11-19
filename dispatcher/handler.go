@@ -2,7 +2,6 @@ package dispatcher
 
 import (
 	"quickscrape/extractor"
-	"quickscrape/processor"
 )
 
 func linkHandler(link *string) error {
@@ -14,8 +13,9 @@ func linkHandler(link *string) error {
 	if err := ext.ExtractLink(*link, results); err != nil {
 		return err
 	}
-	if err := processor.ProcessPostResults(results); err != nil {
+	if err := insertResults(&[]extractor.Results{*results}); err != nil {
 		return err
 	}
+
 	return nil
 }
