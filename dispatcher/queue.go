@@ -15,7 +15,7 @@ var queue []string = make([]string, 0)
 
 func queueProcessor() {
 	queueLen := len(queue)
-	log.Println("Queue length:", queueLen) // debug
+	log.Printf("Processing queue, Queue length: %d \n", queueLen) // debug
 
 	scraping := 0
 	wg := new(sync.WaitGroup)
