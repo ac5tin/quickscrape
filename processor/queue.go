@@ -8,7 +8,7 @@ import (
 )
 
 const MAX_PARALLEL = 3
-const MAX_RETRY = 3
+const MAX_RETRY = 10
 
 var Q []*extractor.Results = []*extractor.Results{}
 
@@ -28,6 +28,7 @@ func queueProcessor(q []*extractor.Results) {
 						return
 					}
 					log.Printf("Failed to process %s, retrying ... ", r.URL)
+					time.Sleep(5 * time.Second)
 					continue
 				}
 				break
