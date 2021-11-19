@@ -9,6 +9,8 @@ import (
 	"github.com/georgysavva/scany/pgxscan"
 )
 
+const TRACK_SITE_SCORE = 200
+
 func genPostID(url string) string {
 	return fmt.Sprintf("%x", sha512.Sum512([]byte(url)))
 }
@@ -22,10 +24,13 @@ func checkLinkExist(url string) bool {
 
 	t := new([]string)
 	if err := pgxscan.Select(context.Background(), conn, t, `
-        SELECT url from posts
+		SELECT posts.url from posts
+        LEFT JOIN sites
+        ON posts.site = sites.site
         WHERE id  = $1
-        AND created_at > current_date - interval '7 day'
-    `, genPostID(url)); err != nil {
+        AND sites.score < $2
+        AND posts.updated_at > current_date - interval '7 day'
+    `, genPostID(url), TRACK_SITE_SCORE); err != nil {
 		return false
 	}
 	if len(*t) == 0 {
