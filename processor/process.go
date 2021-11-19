@@ -8,8 +8,8 @@ import (
 	"sync"
 )
 
-const TITLE_MULTIPLIER = 2.0
-const SUMMARY_MULTIPLIER = 1.5
+const TITLE_MULTIPLIER = 10.0
+const SUMMARY_MULTIPLIER = 2.5
 
 func ProcessPostResults(r *extractor.Results) error {
 	// ======== HANDLE SITE TOKEN ========
