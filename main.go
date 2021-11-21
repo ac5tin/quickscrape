@@ -12,6 +12,7 @@ import (
 
 func main() {
 	site := flag.String("site", "", "URL to init auto crawl")
+	autodispatch := flag.Bool("auto", false, "Auto dispatch")
 	flag.Parse()
 
 	if *site == "" {
@@ -24,7 +25,11 @@ func main() {
 	}
 	db.PG = pg
 
-	go dispatcher.AutoDispatch()
+	if *autodispatch {
+		log.Println("Enabled auto dispatch")
+		go dispatcher.AutoDispatch()
+	}
+
 	go dispatcher.CrawlURL(*site)
 
 	for {
