@@ -73,6 +73,9 @@ func queueProcessor() {
 						}()
 						return nil
 					}
+				} else {
+					// first time we see this hostname
+					siteCount[hostname] = 1
 				}
 
 			}
