@@ -55,7 +55,7 @@ func queueProcessor() {
 					log.Printf("Failed to parse url of %s", url)
 					return err
 				}
-				hostname := u.Hostname()
+				hostname := u.Host
 				if v, ok := siteCount[hostname]; ok {
 					// check if cooling down
 					if v == -1 {
@@ -73,6 +73,7 @@ func queueProcessor() {
 						}()
 						return nil
 					}
+					siteCount[hostname] += 1
 				} else {
 					// first time we see this hostname
 					siteCount[hostname] = 1
