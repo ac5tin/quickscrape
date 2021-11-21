@@ -60,6 +60,7 @@ func queueProcessor() {
 					// check if cooling down
 					if v == -1 {
 						log.Printf("Site: %s still cooling down ...", hostname)
+						qchan <- url
 						return nil
 					}
 					// cool down if reached limit
