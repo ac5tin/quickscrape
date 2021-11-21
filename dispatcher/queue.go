@@ -19,7 +19,7 @@ var qchan chan string = make(chan string)
 const MAX_SCRAPE_PER_SITE = 15   // max number of scrapes per site in 15 mins
 const SITE_COOLDOWN_MINUTES = 15 // number of minutes to cooldown once site reached max scrape
 
-var siteCount map[string]int8
+var siteCount = make(map[string]int8)
 
 func queueProcessor() {
 	queueLen := len(queue)
