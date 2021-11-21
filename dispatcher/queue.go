@@ -2,6 +2,7 @@ package dispatcher
 
 import (
 	"log"
+	URL "net/url"
 	"quickscrape/extractor"
 	"sync"
 	"time"
@@ -13,6 +14,12 @@ const PROCESS_MAX_RETRY = 5
 
 var queue []string = make([]string, 0)
 var qchan chan string = make(chan string)
+
+// ensure sites dont get blocked on too many requests
+const MAX_SCRAPE_PER_SITE = 15   // max number of scrapes per site in 15 mins
+const SITE_COOLDOWN_MINUTES = 15 // number of minutes to cooldown once site reached max scrape
+
+var siteCount map[string]int8
 
 func queueProcessor() {
 	queueLen := len(queue)
@@ -41,7 +48,36 @@ func queueProcessor() {
 			if extractor.CheckIfLink404(url) {
 				return nil
 			}
+			{
+				// check site max scrape reached
+				u, err := URL.Parse(url)
+				if err != nil {
+					log.Printf("Failed to parse url of %s", url)
+					return err
+				}
+				hostname := u.Hostname()
+				if v, ok := siteCount[hostname]; ok {
+					// check if cooling down
+					if v == -1 {
+						log.Printf("Site: %s still cooling down ...", hostname)
+						return nil
+					}
+					// cool down if reached limit
+					if v == MAX_SCRAPE_PER_SITE {
+						qchan <- url
+						go func() {
+							siteCount[hostname] = -1
+							time.Sleep(time.Minute * SITE_COOLDOWN_MINUTES)
+							siteCount[hostname] = 0
+
+						}()
+						return nil
+					}
+				}
+
+			}
 			log.Printf("Scraping %s", url) // debug
+
 			ext := new(extractor.Extractor)
 			results := new(extractor.Results)
 			{
