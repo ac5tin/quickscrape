@@ -48,7 +48,8 @@ func queueProcessor() {
 				return nil
 			}
 
-			if extractor.CheckIfLink404(url) {
+			if blocked, code := extractor.CheckIfLinkBlocked(url); blocked {
+				log.Printf("Link is %d: %s, skipping ...", code, url)
 				return nil
 			}
 			{
@@ -124,7 +125,7 @@ func queueProcessor() {
 		}(url)
 
 		if queueLen > MAX_PARALLEL_SCRAPE && scraping == MAX_PARALLEL_SCRAPE {
-			log.Println("max parallel scrap reached, now waiting ...")
+			log.Println("max parallel scrape reached, now waiting ...")
 			wg.Wait()
 			wg.Add(MAX_PARALLEL_SCRAPE)
 			scraping = 0
