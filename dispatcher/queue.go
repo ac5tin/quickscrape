@@ -51,6 +51,7 @@ func queueProcessor() {
 			}
 			hostname := u.Host
 			v, _ := siteCount.LoadOrStore(hostname, 0)
+			//log.Printf("Site: %s count: %v", hostname, v) // debug
 			// check if cooling down
 			if v == -1 {
 				log.Printf("Site: %s still cooling down ...", hostname)
@@ -63,7 +64,7 @@ func queueProcessor() {
 				continue
 			}
 			// cool down if reached limit
-			if v == MAX_SCRAPE_PER_SITE {
+			if uint(v.(int)) == MAX_SCRAPE_PER_SITE {
 				qchan <- url
 				go func() {
 					siteCount.Store(hostname, -1)
