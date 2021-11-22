@@ -51,7 +51,6 @@ func queueProcessor() {
 			}
 			hostname := u.Host
 			v, _ := siteCount.LoadOrStore(hostname, 0)
-			log.Printf("Checking ... , Site: %s, Count: %d", hostname, v)
 			// check if cooling down
 			if v == -1 {
 				log.Printf("Site: %s still cooling down ...", hostname)
