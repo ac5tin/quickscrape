@@ -48,10 +48,6 @@ func queueProcessor() {
 				return nil
 			}
 
-			if blocked, code := extractor.CheckIfLinkBlocked(url); blocked {
-				log.Printf("Link is %d: %s, skipping ...", code, url)
-				return nil
-			}
 			{
 				// check site max scrape reached
 				u, err := URL.Parse(url)
@@ -65,6 +61,11 @@ func queueProcessor() {
 				if v == -1 {
 					log.Printf("Site: %s still cooling down ...", hostname)
 					qchan <- url
+					return nil
+				}
+				log.Printf("Checking is %s is available ...", url) // debug
+				if blocked, code := extractor.CheckIfLinkBlocked(url); blocked {
+					log.Printf("Link is %d: %s, skipping ...", code, url)
 					return nil
 				}
 				// cool down if reached limit
