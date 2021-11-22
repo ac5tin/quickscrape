@@ -22,7 +22,7 @@ var qchan chan string = make(chan string)
 const MAX_SCRAPE_PER_SITE = 15  // max number of scrapes per site in 15 mins
 const SITE_COOLDOWN_MINUTES = 5 // number of minutes to cooldown once site reached max scrape
 
-var siteCount = make(map[string]int8)
+var siteCount = new(sync.Map)
 
 func queueProcessor() {
 	queueLen := len(queue)
@@ -60,29 +60,24 @@ func queueProcessor() {
 					return err
 				}
 				hostname := u.Host
-				if v, ok := siteCount[hostname]; ok {
-					// check if cooling down
-					if v == -1 {
-						log.Printf("Site: %s still cooling down ...", hostname)
-						qchan <- url
-						return nil
-					}
-					// cool down if reached limit
-					if v == MAX_SCRAPE_PER_SITE {
-						qchan <- url
-						go func() {
-							siteCount[hostname] = -1
-							time.Sleep(time.Minute * SITE_COOLDOWN_MINUTES)
-							siteCount[hostname] = 0
-
-						}()
-						return nil
-					}
-					siteCount[hostname] += 1
-				} else {
-					// first time we see this hostname
-					siteCount[hostname] = 1
+				v, _ := siteCount.LoadOrStore(hostname, 0)
+				// check if cooling down
+				if v == -1 {
+					log.Printf("Site: %s still cooling down ...", hostname)
+					qchan <- url
+					return nil
 				}
+				// cool down if reached limit
+				if v == MAX_SCRAPE_PER_SITE {
+					qchan <- url
+					go func() {
+						siteCount.Store(hostname, -1)
+						time.Sleep(time.Minute * SITE_COOLDOWN_MINUTES)
+						siteCount.Store(hostname, 0)
+					}()
+					return nil
+				}
+				siteCount.Store(hostname, v.(int)+1)
 
 			}
 			log.Printf("Scraping %s", url) // debug
