@@ -15,5 +15,5 @@ func CheckIfLink404(link string) bool {
 	}
 	defer resp.Body.Close()
 
-	return resp.StatusCode == 404 || resp.StatusCode == 410
+	return resp.StatusCode == 404 || resp.StatusCode == 410 || resp.StatusCode == 502 || resp.StatusCode == 503 || resp.StatusCode == 429
 }
