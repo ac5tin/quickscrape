@@ -15,6 +15,8 @@ func main() {
 	site := flag.String("site", "", "URL to init auto crawl")
 	autodispatch := flag.Bool("auto", false, "Auto dispatch")
 	external := flag.Bool("external", true, "Enable related external links")
+	sitecooldown := flag.Uint("cd", 5, "Site cooldown in minutes")
+	sitemaxscrape := flag.Uint("max", 15, "Max scrape per site")
 	flag.Parse()
 
 	// init db
@@ -32,6 +34,10 @@ func main() {
 		// external links
 		log.Println("Enable External links:", *external)
 		dispatcher.EXTERNAL = *external
+		log.Printf("Site cooldown set to %d minutes", *sitecooldown)
+		dispatcher.SITE_COOLDOWN_MINUTES = *sitecooldown
+		log.Printf("Max scrape per site set to %d", *sitemaxscrape)
+		dispatcher.MAX_SCRAPE_PER_SITE = *sitemaxscrape
 	}
 	// -- optional dispatch --
 	if *autodispatch {

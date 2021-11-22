@@ -19,8 +19,8 @@ var queue []string = make([]string, 0)
 var qchan chan string = make(chan string)
 
 // ensure sites dont get blocked on too many requests
-const MAX_SCRAPE_PER_SITE = 15  // max number of scrapes per site in 15 mins
-const SITE_COOLDOWN_MINUTES = 5 // number of minutes to cooldown once site reached max scrape
+var MAX_SCRAPE_PER_SITE uint = 15  // max number of scrapes per site in 15 mins
+var SITE_COOLDOWN_MINUTES uint = 5 // number of minutes to cooldown once site reached max scrape
 
 var siteCount = new(sync.Map)
 
@@ -67,7 +67,7 @@ func queueProcessor() {
 				qchan <- url
 				go func() {
 					siteCount.Store(hostname, -1)
-					time.Sleep(time.Minute * SITE_COOLDOWN_MINUTES)
+					time.Sleep(time.Minute * time.Duration(SITE_COOLDOWN_MINUTES))
 					siteCount.Store(hostname, 0)
 				}()
 				continue
