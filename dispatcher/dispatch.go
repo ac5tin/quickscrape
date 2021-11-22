@@ -6,6 +6,5 @@ func AutoDispatch() {
 }
 
 func CrawlURL(url string) {
-	queue = append(queue, url)
-	go processQueue()
+	qchan <- url
 }

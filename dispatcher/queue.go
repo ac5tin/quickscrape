@@ -12,6 +12,9 @@ const SCRAPE_MAX_RETRY = 5
 const MAX_PARALLEL_SCRAPE = 15
 const PROCESS_MAX_RETRY = 5
 
+// flags
+var EXTERNAL = true
+
 var queue []string = make([]string, 0)
 var qchan chan string = make(chan string)
 
@@ -107,8 +110,10 @@ func queueProcessor() {
 
 			log.Printf("Extracted %d external links + %d internal links from  %s", len(results.RelatedExternalLinks), len(results.RelatedInternalLinks), url) // debug
 
-			for _, link := range results.RelatedExternalLinks {
-				qchan <- link
+			if EXTERNAL {
+				for _, link := range results.RelatedExternalLinks {
+					qchan <- link
+				}
 			}
 			for _, link := range results.RelatedInternalLinks {
 				qchan <- link
@@ -129,7 +134,7 @@ func queueProcessor() {
 	queue = queue[queueLen:]
 }
 
-func processQueue() {
+func ProcessQueue() {
 	go func() {
 		for {
 			r := <-qchan
