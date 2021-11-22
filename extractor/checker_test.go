@@ -2,14 +2,14 @@ package extractor
 
 import "testing"
 
-func Test404Checker(t *testing.T) {
+func TestLinkBlockedChecker(t *testing.T) {
 	link := "https://www.google.com/404"
-	if !CheckIfLink404("https://www.google.com/404") {
-		t.Errorf("Link %s should be 404", link)
+	if blocked, code := CheckIfLinkBlocked("https://www.google.com/404"); !blocked {
+		t.Errorf("Link %s should be 404, got %d", link, code)
 	}
 
 	link = "https://www.bbc.co.uk"
-	if CheckIfLink404(link) {
-		t.Errorf("Link %s shouldn't be 404", link)
+	if blocked, code := CheckIfLinkBlocked(link); blocked {
+		t.Errorf("Link %s shouldn't be %d", link, code)
 	}
 }
