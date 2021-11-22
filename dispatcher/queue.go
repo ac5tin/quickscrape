@@ -36,6 +36,46 @@ func queueProcessor() {
 	}
 
 	for _, url := range queue {
+		{
+			// checking
+			if checkLinkExist(url) {
+				log.Printf("Link already exist: %s, skipping ...", url)
+				continue
+			}
+
+			// check site max scrape reached
+			u, err := URL.Parse(url)
+			if err != nil {
+				log.Printf("Failed to parse url of %s", url)
+				continue
+			}
+			hostname := u.Host
+			v, _ := siteCount.LoadOrStore(hostname, 0)
+			log.Printf("Checking ... , Site: %s, Count: %d", hostname, v)
+			// check if cooling down
+			if v == -1 {
+				log.Printf("Site: %s still cooling down ...", hostname)
+				qchan <- url
+				continue
+			}
+			log.Printf("Checking is %s is available ...", url) // debug
+			if blocked, code := extractor.CheckIfLinkBlocked(url); blocked {
+				log.Printf("Link is %d: %s, skipping ...", code, url)
+				continue
+			}
+			// cool down if reached limit
+			if v == MAX_SCRAPE_PER_SITE {
+				qchan <- url
+				go func() {
+					siteCount.Store(hostname, -1)
+					time.Sleep(time.Minute * SITE_COOLDOWN_MINUTES)
+					siteCount.Store(hostname, 0)
+				}()
+				continue
+			}
+			siteCount.Store(hostname, v.(int)+1)
+
+		}
 		// scrape url
 		scraping += 1
 		go func(url string) error {
@@ -43,45 +83,6 @@ func queueProcessor() {
 				defer wg.Done()
 			}
 
-			if checkLinkExist(url) {
-				log.Printf("Link already exist: %s, skipping ...", url)
-				return nil
-			}
-
-			{
-				// check site max scrape reached
-				u, err := URL.Parse(url)
-				if err != nil {
-					log.Printf("Failed to parse url of %s", url)
-					return err
-				}
-				hostname := u.Host
-				v, _ := siteCount.LoadOrStore(hostname, 0)
-				log.Printf("Checking ... , Site: %s, Count: %d", hostname, v)
-				// check if cooling down
-				if v == -1 {
-					log.Printf("Site: %s still cooling down ...", hostname)
-					qchan <- url
-					return nil
-				}
-				log.Printf("Checking is %s is available ...", url) // debug
-				if blocked, code := extractor.CheckIfLinkBlocked(url); blocked {
-					log.Printf("Link is %d: %s, skipping ...", code, url)
-					return nil
-				}
-				// cool down if reached limit
-				if v == MAX_SCRAPE_PER_SITE {
-					qchan <- url
-					go func() {
-						siteCount.Store(hostname, -1)
-						time.Sleep(time.Minute * SITE_COOLDOWN_MINUTES)
-						siteCount.Store(hostname, 0)
-					}()
-					return nil
-				}
-				siteCount.Store(hostname, v.(int)+1)
-
-			}
 			log.Printf("Scraping %s", url) // debug
 
 			ext := new(extractor.Extractor)
