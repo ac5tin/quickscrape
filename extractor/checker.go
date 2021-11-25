@@ -3,7 +3,7 @@ package extractor
 import "net/http"
 
 func CheckIfLinkBlocked(link string) (bool, uint16) {
-	req, err := http.NewRequest("HEAD", link, nil)
+	req, err := http.NewRequest("GET", link, nil)
 	if err != nil {
 		return false, 200
 	}
