@@ -4,6 +4,7 @@ import (
 	"log"
 	URL "net/url"
 	"quickscrape/extractor"
+	"strings"
 	"sync"
 	"time"
 )
@@ -50,6 +51,12 @@ func queueProcessor() {
 				continue
 			}
 			hostname := u.Host
+			// remove by extension
+			{
+				if strings.HasSuffix(u.Path, ".pdf") {
+					continue
+				}
+			}
 			v, _ := siteCount.LoadOrStore(hostname, 0)
 			//log.Printf("Site: %s count: %v", hostname, v) // debug
 			// check if cooling down
