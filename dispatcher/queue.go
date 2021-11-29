@@ -56,6 +56,27 @@ func queueProcessor() {
 				if strings.HasSuffix(u.Path, ".pdf") {
 					continue
 				}
+				if strings.HasSuffix(u.Path, ".jpg") {
+					continue
+				}
+				if strings.HasSuffix(u.Path, ".png") {
+					continue
+				}
+				if strings.HasSuffix(u.Path, ".gif") {
+					continue
+				}
+				if strings.HasSuffix(u.Path, ".css") {
+					continue
+				}
+				if strings.HasSuffix(u.Path, ".js") {
+					continue
+				}
+				if strings.HasSuffix(u.Path, ".ico") {
+					continue
+				}
+				if strings.HasSuffix(u.Path, ".zip") {
+					continue
+				}
 			}
 			v, _ := siteCount.LoadOrStore(hostname, 0)
 			//log.Printf("Site: %s count: %v", hostname, v) // debug
