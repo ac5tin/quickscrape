@@ -135,7 +135,7 @@ func queueProcessor() {
 				return err
 			}
 
-			log.Printf("Extracted %d external links + %d internal links from  %s", len(results.RelatedExternalLinks), len(results.RelatedInternalLinks), url) // debug
+			log.Printf("Extracted %d external links + %d internal links from  %s", len(results.RelatedExternalLinks), len(results.RelatedInternalLinks), results.URL) // debug
 
 			if EXTERNAL {
 				for _, link := range results.RelatedExternalLinks {
