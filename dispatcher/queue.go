@@ -86,11 +86,22 @@ func queueProcessor() {
 				qchan <- url
 				continue
 			}
+			// check availability
 			log.Printf("Checking is %s is available ...", url) // debug
 			if blocked, code := extractor.CheckIfLinkBlocked(url); blocked {
 				log.Printf("Link is %d: %s, skipping ...", code, url)
 				continue
 			}
+			// check if get request params are required
+			{
+				shortURL := strings.Split(url, "?")[0]
+				if blocked, _ := extractor.CheckIfLinkBlocked(shortURL); !blocked {
+					url = shortURL
+				} else {
+					log.Printf("%s is not available, fallback to %s", shortURL, url)
+				}
+			}
+
 			// cool down if reached limit
 			if uint(v.(int)) == MAX_SCRAPE_PER_SITE {
 				qchan <- url
