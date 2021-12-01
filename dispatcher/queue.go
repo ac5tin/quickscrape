@@ -15,6 +15,7 @@ const PROCESS_MAX_RETRY = 5
 
 // flags
 var EXTERNAL = true
+var RELATED = true
 
 var queue []string = make([]string, 0)
 var qchan chan string = make(chan string)
@@ -147,6 +148,9 @@ func queueProcessor() {
 			}
 
 			log.Printf("Extracted %d external links + %d internal links from  %s", len(results.RelatedExternalLinks), len(results.RelatedInternalLinks), results.URL) // debug
+			if !RELATED {
+				return nil
+			}
 
 			if EXTERNAL {
 				for _, link := range results.RelatedExternalLinks {

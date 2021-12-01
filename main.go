@@ -17,6 +17,7 @@ func main() {
 	external := flag.Bool("external", true, "Enable related external links")
 	sitecooldown := flag.Uint("cd", 5, "Site cooldown in minutes")
 	sitemaxscrape := flag.Uint("max", 15, "Max scrape per site")
+	related := flag.Bool("related", true, "Scrape related links")
 	flag.Parse()
 
 	// init db
@@ -38,6 +39,8 @@ func main() {
 		dispatcher.SITE_COOLDOWN_MINUTES = *sitecooldown
 		log.Printf("Max scrape per site set to %d", *sitemaxscrape)
 		dispatcher.MAX_SCRAPE_PER_SITE = *sitemaxscrape
+		log.Printf("Scrape related links: %t", *related)
+		dispatcher.RELATED = *related
 	}
 	// -- optional dispatch --
 	if *autodispatch {
