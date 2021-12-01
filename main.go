@@ -57,7 +57,14 @@ func main() {
 
 	if *site != "" {
 		log.Printf("Entry url %s", *site)
-		go dispatcher.CrawlURL(*site)
+		go func() {
+			dispatcher.CrawlURL(*site)
+			if !*autodispatch {
+				// auto dispatch is disabled, kill program
+				log.Println("bye ~")
+				os.Exit(0)
+			}
+		}()
 	}
 
 	for {
