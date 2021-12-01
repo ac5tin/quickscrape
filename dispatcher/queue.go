@@ -3,6 +3,7 @@ package dispatcher
 import (
 	"log"
 	URL "net/url"
+	"os"
 	"quickscrape/extractor"
 	"strings"
 	"sync"
@@ -196,5 +197,9 @@ func ProcessQueue() {
 			return
 		}
 		time.Sleep(10 * time.Second)
+		if len(queue) == 0 && !RELATED {
+			log.Println("bye ~")
+			os.Exit(0)
+		}
 	}
 }
