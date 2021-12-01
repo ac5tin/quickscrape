@@ -188,9 +188,11 @@ func ProcessQueue() {
 		queueProcessor()
 		if DEPTH > 0 {
 			DEPTH--
+			log.Printf("Depth: %d", DEPTH)
 		}
 		if DEPTH == 0 {
 			// reached end
+			log.Println("-- > Reached end of depths ... < --")
 			return
 		}
 		time.Sleep(10 * time.Second)
