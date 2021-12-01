@@ -18,6 +18,7 @@ func main() {
 	sitecooldown := flag.Uint("cd", 5, "Site cooldown in minutes")
 	sitemaxscrape := flag.Uint("max", 15, "Max scrape per site")
 	related := flag.Bool("related", true, "Scrape related links")
+	depth := flag.Int("depth", -1, "Max depth")
 	flag.Parse()
 
 	// init db
@@ -41,6 +42,12 @@ func main() {
 		dispatcher.MAX_SCRAPE_PER_SITE = *sitemaxscrape
 		log.Printf("Scrape related links: %t", *related)
 		dispatcher.RELATED = *related
+		if *depth > 0 {
+			log.Printf("Max depth set to %d", *depth)
+			dispatcher.DEPTH = int8(*depth)
+		} else {
+			log.Println("Unlimited depth")
+		}
 	}
 	// -- optional dispatch --
 	if *autodispatch {

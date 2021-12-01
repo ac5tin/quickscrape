@@ -16,6 +16,7 @@ const PROCESS_MAX_RETRY = 5
 // flags
 var EXTERNAL = true
 var RELATED = true
+var DEPTH int8 = -1
 
 var queue []string = make([]string, 0)
 var qchan chan string = make(chan string)
@@ -185,6 +186,13 @@ func ProcessQueue() {
 	}()
 	for {
 		queueProcessor()
+		if DEPTH > 0 {
+			DEPTH--
+		}
+		if DEPTH == 0 {
+			// reached end
+			return
+		}
 		time.Sleep(10 * time.Second)
 	}
 }
