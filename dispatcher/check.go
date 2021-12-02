@@ -3,6 +3,7 @@ package dispatcher
 import (
 	"context"
 	"quickscrape/db"
+	"strings"
 
 	"github.com/georgysavva/scany/pgxscan"
 )
@@ -28,6 +29,18 @@ func checkLinkExist(url string) bool {
 		return false
 	}
 	if len(*t) == 0 {
+		return false
+	}
+	return true
+}
+
+// if true then remove get params from url, else leave it alone
+func shouldRemoveGetParams(url string) bool {
+	// keep youtube vids
+	if strings.Contains(url, "youtube.com/watch?v=") {
+		return false
+	}
+	if strings.Contains(url, "play.google.com/store/apps/details?id=") {
 		return false
 	}
 	return true

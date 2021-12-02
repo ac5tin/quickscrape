@@ -97,11 +97,14 @@ func queueProcessor() {
 			}
 			// check if get request params are required
 			{
-				shortURL := strings.Split(url, "?")[0]
-				if blocked, _ := extractor.CheckIfLinkBlocked(shortURL); !blocked {
-					url = shortURL
-				} else {
-					log.Printf("%s is not available, fallback to %s", shortURL, url)
+				// edge cases, dont remove get params
+				if shouldRemoveGetParams(url) {
+					shortURL := strings.Split(url, "?")[0]
+					if blocked, _ := extractor.CheckIfLinkBlocked(shortURL); !blocked {
+						url = shortURL
+					} else {
+						log.Printf("%s is not available, fallback to %s", shortURL, url)
+					}
 				}
 			}
 
