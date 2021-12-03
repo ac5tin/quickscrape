@@ -80,6 +80,15 @@ func queueProcessor() {
 				if strings.HasSuffix(u.Path, ".zip") {
 					continue
 				}
+				if strings.HasSuffix(u.Path, ".rar") {
+					continue
+				}
+				if strings.HasSuffix(u.Path, ".mp3") {
+					continue
+				}
+				if strings.HasSuffix(u.Path, ".mp4") {
+					continue
+				}
 			}
 			v, _ := siteCount.LoadOrStore(hostname, 0)
 			//log.Printf("Site: %s count: %v", hostname, v) // debug
